@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão - Conselho Tutelar</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --primary-hover: #1e40af;
+            --secondary-color: #0ea5e9;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            color: var(--primary-color);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-title-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-title h2 span {
+            font-size: 14px;
+            display: block;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        /* Sistema de Abas */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: #cbd5e1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .upload-section {
+            margin-bottom: 20px;
+            padding: 18px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .upload-section label {
+            font-weight: 600;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 1024px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #fff;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .form-group input:disabled,
+        .form-group input[readonly] {
+            background-color: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        .dynamic-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .dynamic-item {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dynamic-item input {
+            flex: 1;
+        }
+
+        .btn-add {
+            background-color: var(--secondary-color);
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            align-self: flex-start;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add:hover {
+            background-color: #0284c7;
+        }
+
+        .btn-remove {
+            background-color: var(--danger-color);
+            color: #fff;
+            border: none;
+            padding: 0 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-remove:hover {
+            background-color: #dc2626;
+        }
+
+        .actions {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button.btn-main {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-cadastrar {
+            background-color: var(--success-color);
+        }
+        .btn-cadastrar:hover {
+            background-color: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-excluir {
+            background-color: #64748b;
+        }
+        .btn-excluir:hover {
+            background-color: #475569;
+            transform: translateY(-1px);
+        }
+
+        .btn-colar {
+            background-color: var(--secondary-color);
+            color: white;
+            margin-top: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-colar:hover {
+            background-color: #0284c7;
+        }
+
+        .btn-acao {
+            padding: 6px 10px;
+            font-size: 12px;
+            margin-right: 4px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-deletar {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
+        .btn-deletar:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-imprimir {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+        .btn-imprimir:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-editar {
+            background-color: var(--warning-color);
+            color: #fff;
+        }
+        .btn-editar:hover {
+            background-color: #d97706;
+        }
+
+        .status-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 6px;
+            font-weight: 500;
+            display: none;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .status-box.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left-color: var(--danger-color);
+        }
+
+        textarea.paste-area {
+            width: 100%;
+            height: 60px;
+            margin-top: 6px;
+            padding: 10px;
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .table-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-header-flex h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: #fff;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .dash-card {
+            background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .dash-card:nth-child(2) {
+            background: linear-gradient(135deg, #059669, #10b981);
+        }
+
+        .dash-card h4 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+
+        .dash-card .number {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .search-box-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .search-box-container input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .search-box-container input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .badge-count {
+            display: inline-block;
+            background: #e53e3e;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 6px;
+        }
+
+        .pasta-gerada {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .header-title h2 {
+                font-size: 18px;
+            }
+
+            .tab-btn {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+            th,
+            td {
+                padding: 6px 8px;
+            }
+
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .btn-main {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-title">
+        <div class="header-title-left">
+            <i class="fa-solid fa-folder-open fa-2x"></i>
+            <h2>Sistema de Gestão - Conselho Tutelar <span>Unidade Paranoá</span></h2>
+        </div>
+        <div style="font-size:14px;color:#64748b;">
+            <i class="fa-solid fa-user"></i> Dra. Ana Silva
+        </div>
+    </div>
+
+    <!-- MENU DE ABAS -->
+    <div class="nav-tabs">
+        <button type="button" class="tab-btn active" onclick="alternarAba('processosTab', this)">
+            <i class="fa-solid fa-folder-tree"></i> Gestão de Processos
+        </button>
+        <button type="button" class="tab-btn" onclick="alternarAba('atendimentoTab', this)">
+            <i class="fa-solid fa-headset"></i> Atos de Atendimento
+        </button>
+    </div>
+
+    <!-- ================= ABA 1: GESTÃO DE PROCESSOS ================= -->
+    <div id="processosTab" class="tab-content active">
+
+        <!-- Pesquisa -->
+        <div class="container">
+            <div class="table-header-flex">
+                <h3><i class="fa-solid fa-magnifying-glass"></i> Pesquisar Processos</h3>
+                <span style="font-size:13px;color:#64748b;" id="contadorRegistrosTop">Total: 0 registros</span>
+            </div>
+            <div class="search-box-container">
+                <input type="text" id="inputPesquisaProcessos" placeholder="Digite o nome da criança, responsável, número ou assunto..." oninput="pesquisarProcessos()">
+                <button class="btn-colar" onclick="limparPesquisa()" style="background:#64748b;">
+                    <i class="fa-solid fa-times"></i> Limpar
+                </button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="upload-section">
+                <label><i class="fa-solid fa-file-excel"></i> 1. Carregar Planilha Excel (.xlsx):</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="processarPlanilha(event)">
+
+                <div style="margin-top: 15px;">
+                    <label><i class="fa-solid fa-clipboard"></i> 2. Ou cole os dados copiados do Excel aqui (Ctrl + V):</label>
+                    <textarea id="pasteInput" class="paste-area" placeholder="Clique aqui e pressione Ctrl+V para colar as linhas copiadas do Excel..." onpaste="processarDadosColados(event)"></textarea>
+                    <button type="button" class="btn-colar" onclick="clicarColar()"><i class="fa-solid fa-bolt"></i> Processar Texto Colado</button>
+                </div>
+            </div>
+
+            <form id="processoForm">
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>PASTA <span style="color:var(--danger-color);">*</span></label>
+                        <input type="text" id="pasta" placeholder="Gerado automaticamente" readonly style="background-color: #f1f5f9; font-weight: bold; color: var(--primary-color); font-size:16px;">
+                        <small style="color:#64748b;">Gerado automaticamente baseado na primeira letra do nome</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nº PROCES</label>
+                        <input type="text" id="numProces" placeholder="Ex: 780/26">
+                        <small style="color:#64748b;">Campo opcional</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>NOME DA CRIANÇA/ADOLESCENTE <span style="color:var(--danger-color);">*</span></label>
+                        <div id="criancasContainer" class="dynamic-list">
+                            <div class="dynamic-item">
+                                <input type="text" class="nomeCrianca" placeholder="Nome Completo" oninput="calcularPastaAutomatica()" required>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-add" onclick="adicionarCampoCrianca()"><i class="fa-solid fa-plus"></i> Adicionar Criança</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>DATA NASC</label>
+                        <input type="date" id="dataNasc" placeholder="DD/MM/AAAA">
+                    </div>
+
+                    <div class="form-group">
+                        <label>NOME DO RESPONSÁVEL</label>
+                        <div id="responsaveisContainer" class="dynamic-list">
+                            <div class="dynamic-item">
+                                <input type="text" class="nomeResponsavel" placeholder="Nome Completo">
+                            </div>
+                        </div>
+                        <button type="button" class="btn-add" onclick="adicionarCampo('responsaveisContainer', 'nomeResponsavel', 'Nome Completo')"><i class="fa-solid fa-plus"></i> Adicionar Responsável</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ENDEREÇO</label>
+                        <input type="text" id="endereco" placeholder="Rua, Quadra, Lote, Casa">
+                    </div>
+
+                    <div class="form-group">
+                        <label>CIDADE</label>
+                        <select id="cidade">
+                            <option value="">Selecione a localidade...</option>
+                            <option value="Setor de Indústria do Paranoá">Setor de Indústria do Paranoá</option>
+                            <option value="Parque Urbano do Paranoá">Parque Urbano do Paranoá</option>
+                            <option value="Parque Ecológico Cachoeirinha">Parque Ecológico Cachoeirinha</option>
+                            <option value="Condomínio La Font">Condomínio La Font</option>
+                            <option value="Condomínio Las Vegas">Condomínio Las Vegas</option>
+                            <option value="PAD – DF">PAD – DF</option>
+                            <option value="Córrego do Tamanduá">Córrego do Tamanduá</option>
+                            <option value="Rajadinha II">Rajadinha II</option>
+                            <option value="Sobradinho dos Melos">Sobradinho dos Melos</option>
+                            <option value="Boqueirão">Boqueirão</option>
+                            <option value="Capão da Onça">Capão da Onça</option>
+                            <option value="Quebrada dos Guimarães">Quebrada dos Guimarães</option>
+                            <option value="Quebrada dos Neres">Quebrada dos Neres</option>
+                            <option value="Café sem Troco">Café sem Troco</option>
+                            <option value="Faz . Santo Antonio">Faz . Santo Antonio</option>
+                            <option value="Cariru">Cariru</option>
+                            <option value="Buriti Vermelho">Buriti Vermelho</option>
+                            <option value="Itapeti">Itapeti</option>
+                            <option value="Sussuarana">Sussuarana</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ASSUNTO</label>
+                        <select id="assunto">
+                            <option value="">Selecione o assunto...</option>
+                            <option value="FALTA ESCOLAR">Falta Escolar</option>
+                            <option value="NEGLIGÊNCIA">Negligência</option>
+                            <option value="VIOLÊNCIA PSICOLÓGICA">Violência Psicológica</option>
+                            <option value="VIOLÊNCIA FÍSICA">Violência Física</option>
+                            <option value="VIOLÊNCIA SEXUAL">Violência Sexual</option>
+                            <option value="MEDIDA PROTETIVA">Medida Protetiva</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>CONSELHEIRO</label>
+                        <select id="conselheiro">
+                            <option value="">Selecione o conselheiro...</option>
+                            <option value="Cláudia">Cláudia</option>
+                            <option value="Lucinea">Lucinea</option>
+                            <option value="Nadelço">Nadelço</option>
+                            <option value="Samara">Samara</option>
+                            <option value="Sandra">Sandra</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>PROCESSO SEI Nº</label>
+                        <input type="text" id="processoSeiNum" placeholder="Ex: 00080-00271677/2026-80">
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn-main btn-cadastrar" onclick="salvarRegistro()"><i class="fa-solid fa-floppy-disk"></i> Cadastrar / Salvar</button>
+                    <button type="button" class="btn-main btn-excluir" onclick="tentarLimparFormulario()"><i class="fa-solid fa-rotate-right"></i> Limpar Formulário</button>
+                    <button type="button" class="btn-main" style="background-color:#8b5cf6;" onclick="exportarDados()"><i class="fa-solid fa-file-export"></i> Exportar Dados</button>
+                </div>
+            </form>
+            <div id="statusBox" class="status-box"></div>
+        </div>
+
+        <div class="container">
+            <div class="table-header-flex">
+                <h3><i class="fa-solid fa-table-list"></i> Registros Cadastrados</h3>
+                <span id="contadorRegistros" style="font-size: 13px; color: #64748b; font-weight: 600;">Total: 0 registros</span>
+            </div>
+            <div class="table-container">
+                <table id="tabelaRegistros">
+                    <thead>
+                        <tr>
+                            <th>PASTA</th>
+                            <th>Nº PROCES</th>
+                            <th>NOME CRIANÇA</th>
+                            <th>DATA NASC</th>
+                            <th>RESPONSÁVEL</th>
+                            <th>ENDEREÇO</th>
+                            <th>CIDADE</th>
+                            <th>ASSUNTO</th>
+                            <th>CONSELHEIRO</th>
+                            <th>PROCESSO SEI</th>
+                            <th style="text-align:center;">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="11" style="text-align:center;color:#64748b;padding:20px;">Nenhum dado cadastrado ainda.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ABA 2: ATOS DE ATENDIMENTO ================= -->
+    <div id="atendimentoTab" class="tab-content">
+        <!-- Dashboard -->
+        <div class="dashboard-cards">
+            <div class="dash-card">
+                <h4>Total de Atendimentos</h4>
+                <p class="number" id="dashTotalAtendimentos">0</p>
+            </div>
+            <div class="dash-card">
+                <h4>Pessoas Atendidas</h4>
+                <p class="number" id="dashPessoasUnicas">0</p>
+            </div>
+        </div>
+
+        <!-- Formulário de Atendimento -->
+        <div class="container">
+            <div class="table-header-flex">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Registrar Atendimento</h3>
+                <span style="font-size:12px;color:#64748b;"><i class="fa-solid fa-clock"></i> <span id="spanDataHoje"></span></span>
+            </div>
+
+            <form id="atendimentoForm">
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>NOME <span style="color:var(--danger-color);">*</span></label>
+                        <input type="text" id="atendNome" placeholder="Nome completo da pessoa atendida" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>TELEFONE</label>
+                        <input type="tel" id="atendTelefone" placeholder="(00) 00000-0000">
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>ENDEREÇO</label>
+                        <input type="text" id="atendEndereco" placeholder="Rua, número, bairro, cidade">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ASSUNTO <span style="color:var(--danger-color);">*</span></label>
+                        <input type="text" id="atendAssunto" placeholder="Ex: Medida protetiva, orientação..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>CONSELHEIRO</label>
+                        <select id="atendConselheiro">
+                            <option value="">Selecione...</option>
+                            <option value="Cláudia">Cláudia</option>
+                            <option value="Lucinea">Lucinea</option>
+                            <option value="Nadelço">Nadelço</option>
+                            <option value="Samara">Samara</option>
+                            <option value="Sandra">Sandra</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 3;">
+                        <label>DATA E HORA DO ATENDIMENTO</label>
+                        <input type="text" id="atendDataHora" readonly style="background-color: #f1f5f9; font-weight: 600;">
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn-main btn-cadastrar" onclick="salvarAtendimento()"><i class="fa-solid fa-check"></i> Salvar Atendimento</button>
+                    <button type="button" class="btn-main btn-excluir" onclick="limparFormAtendimento()"><i class="fa-solid fa-rotate-right"></i> Limpar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de Atendimentos -->
+        <div class="container">
+            <div class="table-header-flex">
+                <h3><i class="fa-solid fa-list-check"></i> Histórico de Atendimentos</h3>
+                <span id="contadorAtendimentos" style="font-size:13px;color:#64748b;font-weight:600;">Total: 0</span>
+            </div>
+
+            <div class="table-container">
+                <table id="tabelaAtendimentos">
+                    <thead>
+                        <tr>
+                            <th>DATA/HORA</th>
+                            <th>NOME</th>
+                            <th>TELEFONE</th>
+                            <th>ENDEREÇO</th>
+                            <th>ASSUNTO</th>
+                            <th>CONSELHEIRO</th>
+                            <th style="text-align:center;">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="7" style="text-align:center;color:#64748b;padding:20px;">Nenhum atendimento registrado.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // ALTERNAR ABAS
+        // ============================================================
+        function alternarAba(abaId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(abaId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // ============================================================
+        // DATA E HORA ATUAL
+        // ============================================================
+        function atualizarDataHoraAtual() {
+            const agora = new Date();
+            const dataFormatada = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR');
+            const inputDH = document.getElementById('atendDataHora');
+            if (inputDH) inputDH.value = dataFormatada;
+            const spanH = document.getElementById('spanDataHoje');
+            if (spanH) spanH.innerText = dataFormatada;
+        }
+        setInterval(atualizarDataHoraAtual, 1000);
+        window.onload = function() {
+            atualizarDataHoraAtual();
+            carregarDados();
+        };
+
+        // ============================================================
+        // SCRIPTS DA ABA 1 (Processos)
+        // ============================================================
+        let registrosCarregados = [];
+        let editIndex = -1;
+
+        function adicionarCampo(containerId, classeInput, placeholderTexto) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = 'dynamic-item';
+            div.innerHTML =
+                `<input type="text" class="${classeInput}" placeholder="${placeholderTexto}"><button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+            container.appendChild(div);
+        }
+
+        function adicionarCampoCrianca() {
+            const container = document.getElementById('criancasContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-item';
+            div.innerHTML =
+                `<input type="text" class="nomeCrianca" placeholder="Nome Completo" oninput="calcularPastaAutomatica()"><button type="button" class="btn-remove" onclick="this.parentElement.remove(); calcularPastaAutomatica();"><i class="fa-solid fa-xmark"></i></button>`;
+            container.appendChild(div);
+        }
+
+        function obterValoresDinamicos(classeInput) {
+            let valores = [];
+            document.querySelectorAll('.' + classeInput).forEach(input => {
+                if (input.value.trim() !== '') valores.push(input.value.trim());
+            });
+            return valores.join(', ');
+        }
+
+        // ============================================================
+        // GERAR PASTA AUTOMATICAMENTE - A-1, A-2, B-1, B-2, ...
+        // ============================================================
+        function calcularPastaAutomatica() {
+            const primeiroInput = document.querySelector('.nomeCrianca');
+            const inputPasta = document.getElementById('pasta');
+            if (!primeiroInput || !primeiroInput.value.trim()) {
+                inputPasta.value = '';
+                return;
+            }
+
+            let nome = primeiroInput.value.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            let letra = nome[0].toUpperCase();
+            if (!/[A-Z]/.test(letra)) letra = 'A';
+
+            let maxNum = 0;
+            registrosCarregados.forEach(item => {
+                if (item.pasta && item.pasta.startsWith(letra + '-')) {
+                    let partes = item.pasta.split('-');
+                    let num = parseInt(partes[1]);
+                    if (!isNaN(num) && num > maxNum) {
+                        maxNum = num;
+                    }
+                }
+            });
+
+            inputPasta.value = `${letra}-${maxNum + 1}`;
+        }
+
+        // ============================================================
+        // PROCESSAR PLANILHA
+        // ============================================================
+        function processarPlanilha(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const leitor = new FileReader();
+            leitor.onload = function(e) {
+                try {
+                    const dadosBinarios = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(dadosBinarios, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+
+                    if (jsonData.length === 0) {
+                        mostrarMensagem("❌ A planilha está vazia.", true);
+                        return;
+                    }
+
+                    mapearRegistros(jsonData);
+                    mostrarMensagem("✅ Planilha importada com sucesso! " + jsonData.length + " registros.");
+                } catch (error) {
+                    mostrarMensagem("❌ Erro ao ler a planilha: " + error.message, true);
+                }
+            };
+            leitor.readAsArrayBuffer(arquivo);
+            event.target.value = '';
+        }
+
+        // ============================================================
+        // PROCESSAR DADOS COLADOS
+        // ============================================================
+        function clicarColar() {
+            executarColagem(document.getElementById('pasteInput').value);
+        }
+
+        function processarDadosColados(event) {
+            setTimeout(() => {
+                executarColagem(event.target.value);
+            }, 100);
+        }
+
+        function executarColagem(textoColado) {
+            if (!textoColado || !textoColado.trim()) {
+                mostrarMensagem("❌ Nenhum dado para processar.", true);
+                return;
+            }
+
+            const linhas = textoColado.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (linhas.length === 0) {
+                mostrarMensagem("❌ Nenhuma linha válida.", true);
+                return;
+            }
+
+            // Verifica se tem cabeçalho
+            let inicioIndex = 0;
+            const primeiraLinha = linhas[0].toUpperCase();
+            if (primeiraLinha.includes('PASTA') || primeiraLinha.includes('PROCES') || primeiraLinha.includes('NOME') ||
+                primeiraLinha.includes('DATA') || primeiraLinha.includes('RESPONSÁVEL')) {
+                inicioIndex = 1;
+            }
+
+            const dadosConvertidos = [];
+            for (let i = inicioIndex; i < linhas.length; i++) {
+                const col = linhas[i].split('\t').map(c => c.trim());
+                if (col.length < 2) continue;
+
+                dadosConvertidos.push({
+                    'NOME DA CRIANÇA / ADOLESCENTE': col[1] || '',
+                    'Nº PROCES': col[0] || '',
+                    'DATA NASC': col[2] || '',
+                    'NOME DO RESPONSÁVEL': col[3] || '',
+                    'ENDEREÇO': col[4] || '',
+                    'CIDADE': col[5] || '',
+                    'ASSUNTO': col[6] || '',
+                    'CONSELHEIRO': col[7] || '',
+                    'PROCESSO SEI Nº': col[8] || ''
+                });
+            }
+
+            if (dadosConvertidos.length === 0) {
+                mostrarMensagem("❌ Nenhum dado válido encontrado.", true);
+                return;
+            }
+
+            mapearRegistros(dadosConvertidos);
+            mostrarMensagem("✅ " + dadosConvertidos.length + " registros importados com sucesso!");
+            document.getElementById('pasteInput').value = '';
+        }
+
+        // ============================================================
+        // MAPEAR REGISTROS E GERAR PASTA
+        // ============================================================
+        function mapearRegistros(linhasBrutas) {
+            linhasBrutas.forEach((row) => {
+                let nomeCrianca = row['NOME DA CRIANÇA / ADOLESCENTE'] || row['NOME DA CRIANÇA/ADOLESCENTE'] || row
+                    .nomeCrianca || '';
+
+                let letra = 'A';
+                if (nomeCrianca.trim().length > 0) {
+                    letra = nomeCrianca.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "")[0].toUpperCase();
+                    if (!/[A-Z]/.test(letra)) letra = 'A';
+                }
+
+                let maxNum = 0;
+                registrosCarregados.forEach(item => {
+                    if (item.pasta && item.pasta.startsWith(letra + '-')) {
+                        let partes = item.pasta.split('-');
+                        let num = parseInt(partes[1]);
+                        if (!isNaN(num) && num > maxNum) maxNum = num;
+                    }
+                });
+
+                let pastaGerada = `${letra}-${maxNum + 1}`;
+
+                let novoItem = {
+                    pasta: pastaGerada,
+                    numProces: row['Nº PROCES'] || row['numProces'] || '',
+                    nomeCrianca: nomeCrianca,
+                    dataNasc: row['DATA NASC'] || row.dataNasc || '',
+                    nomeResponsavel: row['NOME DO RESPONSÁVEL'] || row.nomeResponsavel || '',
+                    endereco: row['ENDEREÇO'] || row.endereco || '',
+                    cidade: row['CIDADE'] || row.cidade || '',
+                    assunto: row['ASSUNTO'] || row.assunto || '',
+                    conselheiro: row['CONSELHEIRO'] || row.conselheiro || '',
+                    processoSeiNum: row['PROCESSO SEI Nº'] || row.processoSeiNum || ''
+                };
+                registrosCarregados.push(novoItem);
+            });
+            salvarDados();
+            atualizarTabelaTela(registrosCarregados);
+        }
+
+        // ============================================================
+        // ATUALIZAR TABELA
+        // ============================================================
+        function atualizarTabelaTela(listaExibicao) {
+            const tbody = document.querySelector('#tabelaRegistros tbody');
+            tbody.innerHTML = '';
+
+            const total = listaExibicao.length;
+            document.getElementById('contadorRegistros').innerText = `Total: ${total} registros`;
+            document.getElementById('contadorRegistrosTop').innerText = `Total: ${total} registros`;
+
+            if (listaExibicao.length === 0) {
+                tbody.innerHTML =
+                '<tr><td colspan="11" style="text-align:center;color:#64748b;padding:20px;">Nenhum dado encontrado.</td></tr>';
+                return;
+            }
+
+            listaExibicao.forEach((item, index) => {
+                let indexReal = registrosCarregados.indexOf(item);
+                tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${item.pasta || '---'}</strong></td>
+                            <td>${item.numProces || '---'}</td>
+                            <td>${item.nomeCrianca || '---'}</td>
+                            <td>${item.dataNasc || '---'}</td>
+                            <td>${item.nomeResponsavel || '---'}</td>
+                            <td>${item.endereco || '---'}</td>
+                            <td>${item.cidade || '---'}</td>
+                            <td><span style="background:#e0f2fe;color:#0369a1;padding:3px 8px;border-radius:4px;font-weight:600;">${item.assunto || '---'}</span></td>
+                            <td>${item.conselheiro || '---'}</td>
+                            <td>${item.processoSeiNum || '---'}</td>
+                            <td style="text-align:center;white-space:nowrap;">
+                                <button type="button" class="btn-acao btn-editar" onclick="editarRegistro(${indexReal})" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                <button type="button" class="btn-acao btn-imprimir" onclick="imprimirCapa(${indexReal})" title="Imprimir Capa"><i class="fa-solid fa-print"></i></button>
+                                <button type="button" class="btn-acao btn-deletar" onclick="removerRegistro(${indexReal})" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+            });
+        }
+
+        // ============================================================
+        // SALVAR REGISTRO
+        // ============================================================
+        function salvarRegistro() {
+            let pastaVal = document.getElementById('pasta').value;
+            let criancaVal = obterValoresDinamicos('nomeCrianca');
+
+            if (!criancaVal) {
+                mostrarMensagem("❌ Preencha o nome da criança/adolescente!", true);
+                return;
+            }
+
+            if (!pastaVal) {
+                mostrarMensagem("❌ A PASTA não foi gerada. Digite o nome da criança.", true);
+                return;
+            }
+
+            const editIndexVal = parseInt(document.getElementById('editIndex').value);
+
+            let dadosForm = {
+                pasta: pastaVal,
+                numProces: document.getElementById('numProces').value || '',
+                nomeCrianca: criancaVal,
+                dataNasc: document.getElementById('dataNasc').value || '',
+                nomeResponsavel: obterValoresDinamicos('nomeResponsavel') || '',
+                endereco: document.getElementById('endereco').value || '',
+                cidade: document.getElementById('cidade').value || '',
+                assunto: document.getElementById('assunto').value || '',
+                conselheiro: document.getElementById('conselheiro').value || '',
+                processoSeiNum: document.getElementById('processoSeiNum').value || ''
+            };
+
+            if (editIndexVal >= 0 && editIndexVal < registrosCarregados.length) {
+                registrosCarregados[editIndexVal] = dadosForm;
+                mostrarMensagem("✅ Registro atualizado com sucesso!");
+            } else {
+                registrosCarregados.push(dadosForm);
+                mostrarMensagem("✅ Processo cadastrado com sucesso!");
+            }
+
+            document.getElementById('editIndex').value = '-1';
+            salvarDados();
+            atualizarTabelaTela(registrosCarregados);
+            tentarLimparFormulario();
+        }
+
+        // ============================================================
+        // EDITAR REGISTRO
+        // ============================================================
+        function editarRegistro(index) {
+            const item = registrosCarregados[index];
+            if (!item) return;
+
+            document.getElementById('editIndex').value = index;
+            document.getElementById('pasta').value = item.pasta || '';
+            document.getElementById('numProces').value = item.numProces || '';
+            document.getElementById('dataNasc').value = item.dataNasc || '';
+            document.getElementById('endereco').value = item.endereco || '';
+            document.getElementById('cidade').value = item.cidade || '';
+            document.getElementById('assunto').value = item.assunto || '';
+            document.getElementById('conselheiro').value = item.conselheiro || '';
+            document.getElementById('processoSeiNum').value = item.processoSeiNum || '';
+
+            // Preencher campos dinâmicos
+            const containerCriancas = document.getElementById('criancasContainer');
+            containerCriancas.innerHTML = '';
+            if (item.nomeCrianca) {
+                const nomes = item.nomeCrianca.split(', ');
+                nomes.forEach(nome => {
+                    const div = document.createElement('div');
+                    div.className = 'dynamic-item';
+                    div.innerHTML =
+                        `<input type="text" class="nomeCrianca" placeholder="Nome Completo" value="${nome}" oninput="calcularPastaAutomatica()"><button type="button" class="btn-remove" onclick="this.parentElement.remove(); calcularPastaAutomatica();"><i class="fa-solid fa-xmark"></i></button>`;
+                    containerCriancas.appendChild(div);
+                });
+            } else {
+                containerCriancas.innerHTML =
+                    '<div class="dynamic-item"><input type="text" class="nomeCrianca" placeholder="Nome Completo" oninput="calcularPastaAutomatica()"></div>';
+            }
+
+            const containerResponsaveis = document.getElementById('responsaveisContainer');
+            containerResponsaveis.innerHTML = '';
+            if (item.nomeResponsavel) {
+                const nomes = item.nomeResponsavel.split(', ');
+                nomes.forEach(nome => {
+                    const div = document.createElement('div');
+                    div.className = 'dynamic-item';
+                    div.innerHTML =
+                        `<input type="text" class="nomeResponsavel" placeholder="Nome Completo" value="${nome}"><button type="button" class="btn-remove" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>`;
+                    containerResponsaveis.appendChild(div);
+                });
+            } else {
+                containerResponsaveis.innerHTML =
+                    '<div class="dynamic-item"><input type="text" class="nomeResponsavel" placeholder="Nome Completo"></div>';
+            }
+
+            document.getElementById('formCriancaTitle').textContent = '✏️ Editando Registro';
+            document.getElementById('btnSalvarCrianca').textContent = '💾 Atualizar';
+
+            document.getElementById('processoForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            mostrarMensagem(`✏️ Editando: ${item.nomeCrianca}`);
+        }
+
+        // ============================================================
+        // REMOVER REGISTRO
+        // ============================================================
+        function removerRegistro(index) {
+            if (confirm("⚠️ Tem certeza que deseja excluir este registro?")) {
+                registrosCarregados.splice(index, 1);
+                salvarDados();
+                atualizarTabelaTela(registrosCarregados);
+                mostrarMensagem("🗑️ Registro removido com sucesso!");
+            }
+        }
+
+        // ============================================================
+        // LIMPAR FORMULÁRIO
+        // ============================================================
+        function tentarLimparFormulario() {
+            document.getElementById('processoForm').reset();
+            document.getElementById('pasta').value = '';
+            document.getElementById('editIndex').value = '-1';
+            document.getElementById('criancasContainer').innerHTML =
+                '<div class="dynamic-item"><input type="text" class="nomeCrianca" placeholder="Nome Completo" oninput="calcularPastaAutomatica()"></div>';
+            document.getElementById('responsaveisContainer').innerHTML =
+                '<div class="dynamic-item"><input type="text" class="nomeResponsavel" placeholder="Nome Completo"></div>';
+            document.getElementById('formCriancaTitle').textContent = '➕ Cadastrar Nova Criança';
+            document.getElementById('btnSalvarCrianca').textContent = '💾 Salvar Cadastro';
+            mostrarMensagem("🔄 Formulário limpo!");
+        }
+
+        // ============================================================
+        // PESQUISAR PROCESSOS
+        // ============================================================
+        function pesquisarProcessos() {
+            const termo = document.getElementById('inputPesquisaProcessos').value.trim().toLowerCase();
+            if (!termo) {
+                atualizarTabelaTela(registrosCarregados);
+                return;
+            }
+            const filtrados = registrosCarregados.filter(item =>
+                (item.nomeCrianca && item.nomeCrianca.toLowerCase().includes(termo)) ||
+                (item.nomeResponsavel && item.nomeResponsavel.toLowerCase().includes(termo)) ||
+                (item.numProces && item.numProces.toLowerCase().includes(termo)) ||
+                (item.assunto && item.assunto.toLowerCase().includes(termo)) ||
+                (item.pasta && item.pasta.toLowerCase().includes(termo)) ||
+                (item.endereco && item.endereco.toLowerCase().includes(termo)) ||
+                (item.cidade && item.cidade.toLowerCase().includes(termo)) ||
+                (item.conselheiro && item.conselheiro.toLowerCase().includes(termo))
+            );
+            atualizarTabelaTela(filtrados);
+        }
+
+        function limparPesquisa() {
+            document.getElementById('inputPesquisaProcessos').value = '';
+            pesquisarProcessos();
+        }
+
+        // ============================================================
+        // IMPRIMIR CAPA
+        // ============================================================
+        function imprimirCapa(index) {
+            const item = registrosCarregados[index];
+            if (!item) {
+                alert("Registro não encontrado!");
+                return;
+            }
+
+            const janelaImpressao = window.open('', '_blank', 'width=800,height=900');
+
+            let enderecoCompleto = item.endereco || '';
+            if (item.cidade) {
+                enderecoCompleto += (enderecoCompleto ? ' – ' : '') + item.cidade;
+            }
+
+            janelaImpressao.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="pt-BR">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Capa do Processo - ${item.pasta}</title>
+                        <style>
+                            @page { size: A4; margin: 1.5cm; }
+                            * { box-sizing: border-box; }
+                            body { font-family: Calibri, sans-serif; margin: 0; padding: 0; color: #000; background-color: #fff; }
+                            .capa-folha { width: 100%; height: 25.7cm; margin: 0 auto; border: 2px solid #000; padding: 35px; position: relative; }
+                            .cabecalho-principal { text-align: center; font-size: 18pt; font-weight: bold; line-height: 1.4; text-transform: uppercase; }
+                            .linha-topo { display: flex; justify-content: space-between; align-items: baseline; font-size: 26pt; font-weight: bold; margin-top: 3.2em; margin-bottom: 35px; padding-left: 10px; padding-right: 10px; }
+                            .bloco-dados { display: flex; flex-direction: column; gap: 20px; font-size: 20pt; font-weight: bold; line-height: 1.3; padding-left: 10px; }
+                            .bloco-centro-baixo { position: absolute; bottom: 95px; left: 35px; right: 35px; display: flex; flex-direction: column; gap: 20px; }
+                            .bloco-assunto { font-size: 20pt; font-weight: bold; text-transform: uppercase; text-align: center; width: 100%; }
+                            .bloco-inferior { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; }
+                            .bloco-direita { text-align: right; font-size: 14pt; font-weight: bold; line-height: 1.4; }
+                            @media print {
+                                html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; }
+                                .capa-folha { border: 2px solid #000; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+                                .nao-imprimir { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="capa-folha">
+                            <div>
+                                <div class="cabecalho-principal">
+                                    CONSELHO TUTELAR DO PARANOÁ<br>ARQUIVO ATIVO
+                                </div>
+                                <div class="linha-topo">
+                                    <span>${item.pasta || '---'}</span>
+                                    <span>PROCESSO: ${item.numProces || '---'}</span>
+                                </div>
+                                <br><br><br>
+                                <div class="bloco-dados">
+                                    <div>ADOLESCENTE: ${item.nomeCrianca ? item.nomeCrianca.toUpperCase() : '---'}</div>
+                                    <div>RESPONSAVEL: ${item.nomeResponsavel ? item.nomeResponsavel.toUpperCase() : '---'}</div>
+                                    <div>ENDEREÇO: ${enderecoCompleto ? enderecoCompleto.toUpperCase() : '---'}</div>
+                                </div>
+                            </div>
+                            <div class="bloco-centro-baixo">
+                                <div class="bloco-assunto">ASSUNTO: ${item.assunto ? item.assunto.toUpperCase() : '---'}</div>
+                                <div class="bloco-inferior">
+                                    <div></div>
+                                    <div class="bloco-direita">
+                                        CONSELHEIRO(A): ${item.conselheiro ? item.conselheiro.toUpperCase() : '---'}<br>
+                                        SEI: ${item.processoSeiNum || '---'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="nao-imprimir" style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
+                            <button onclick="window.print()" style="padding: 12px 24px; font-size: 16px; background: #1e3a8a; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;"><i class="fa-solid fa-print"></i> Imprimir Capa Agora</button>
+                        </div>
+                    </body>
+                    </html>
+                `);
+            janelaImpressao.document.close();
+        }
+
+        // ============================================================
+        // EXPORTAR DADOS
+        // ============================================================
+        function exportarDados() {
+            if (registrosCarregados.length === 0) {
+                alert("⚠️ Não há dados para exportar.");
+                return;
+            }
+
+            const dadosExport = registrosCarregados.map(item => ({
+                'PASTA': item.pasta || '',
+                'Nº PROCES': item.numProces || '',
+                'NOME DA CRIANÇA/ADOLESCENTE': item.nomeCrianca || '',
+                'DATA NASC': item.dataNasc || '',
+                'NOME DO RESPONSÁVEL': item.nomeResponsavel || '',
+                'ENDEREÇO': item.endereco || '',
+                'CIDADE': item.cidade || '',
+                'ASSUNTO': item.assunto || '',
+                'CONSELHEIRO': item.conselheiro || '',
+                'PROCESSO SEI Nº': item.processoSeiNum || ''
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(dadosExport);
+            XLSX.utils.book_append_sheet(wb, ws, 'Processos');
+            XLSX.writeFile(wb, `processos_conselho_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+            mostrarMensagem("✅ Dados exportados com sucesso!");
+        }
+
+        // ============================================================
+        // SALVAR E CARREGAR DADOS DO LOCALSTORAGE
+        // ============================================================
+        function salvarDados() {
+            try {
+                localStorage.setItem('registrosConselhoTutelar', JSON.stringify(registrosCarregados));
+                localStorage.setItem('atendimentosConselhoTutelar', JSON.stringify(atendimentosRegistrados));
+            } catch (e) {
+                console.error('Erro ao salvar dados:', e);
+            }
+        }
+
+        function carregarDados() {
+            try {
+                const registrosSalvos = localStorage.getItem('registrosConselhoTutelar');
+                if (registrosSalvos) {
+                    registrosCarregados = JSON.parse(registrosSalvos);
+                    atualizarTabelaTela(registrosCarregados);
+                }
+
+                const atendimentosSalvos = localStorage.getItem('atendimentosConselhoTutelar');
+                if (atendimentosSalvos) {
+                    atendimentosRegistrados = JSON.parse(atendimentosSalvos);
+                    atualizarDashboardEAtendimentos();
+                }
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
+            }
+        }
+
+        // ============================================================
+        // MOSTRAR MENSAGEM
+        // ============================================================
+        function mostrarMensagem(texto, isError = false) {
+            const box = document.getElementById('statusBox');
+            box.style.display = 'block';
+            box.className = 'status-box' + (isError ? ' error' : '');
+            box.innerText = texto;
+            clearTimeout(box._timeout);
+            box._timeout = setTimeout(() => {
+                box.style.display = 'none';
+                box.className = 'status-box';
+            }, 5000);
+        }
+
+        // ============================================================
+        // SCRIPTS DA ABA 2 (Atos de Atendimento)
+        // ============================================================
+        let atendimentosRegistrados = [];
+
+        function salvarAtendimento() {
+            const nome = document.getElementById('atendNome').value.trim();
+            const assunto = document.getElementById('atendAssunto').value.trim();
+
+            if (!nome || !assunto) {
+                mostrarMensagem("❌ Preencha o Nome e o Assunto!", true);
+                return;
+            }
+
+            const novoAtendimento = {
+                dataHora: document.getElementById('atendDataHora').value,
+                nome: nome,
+                telefone: document.getElementById('atendTelefone').value.trim() || '',
+                endereco: document.getElementById('atendEndereco').value.trim() || '',
+                assunto: assunto,
+                conselheiro: document.getElementById('atendConselheiro').value || ''
+            };
+
+            atendimentosRegistrados.push(novoAtendimento);
+            salvarDados();
+            atualizarDashboardEAtendimentos();
+            limparFormAtendimento();
+            mostrarMensagem("✅ Ato de atendimento registrado com sucesso!");
+        }
+
+        function limparFormAtendimento() {
+            document.getElementById('atendimentoForm').reset();
+            document.getElementById('atendDataHora').value = '';
+            atualizarDataHoraAtual();
+        }
+
+        function atualizarDashboardEAtendimentos() {
+            const tbody = document.querySelector('#tabelaAtendimentos tbody');
+            tbody.innerHTML = '';
+
+            document.getElementById('contadorAtendimentos').innerText = `Total: ${atendimentosRegistrados.length}`;
+            document.getElementById('dashTotalAtendimentos').innerText = atendimentosRegistrados.length;
+
+            const pessoasUnicas = new Set(atendimentosRegistrados.map(a => a.nome.toLowerCase()));
+            document.getElementById('dashPessoasUnicas').innerText = pessoasUnicas.size;
+
+            if (atendimentosRegistrados.length === 0) {
+                tbody.innerHTML =
+                '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:20px;">Nenhum atendimento registrado.</td></tr>';
+                return;
+            }
+
+            atendimentosRegistrados.forEach((item, index) => {
+                tbody.innerHTML += `
+                        <tr>
+                            <td>${item.dataHora}</td>
+                            <td><strong>${item.nome}</strong></td>
+                            <td>${item.telefone || '---'}</td>
+                            <td>${item.endereco || '---'}</td>
+                            <td><span style="background:#e0f2fe;color:#0369a1;padding:3px 8px;border-radius:4px;font-weight:600;">${item.assunto}</span></td>
+                            <td>${item.conselheiro || '---'}</td>
+                            <td style="text-align:center;">
+                                <button type="button" class="btn-acao btn-deletar" onclick="removerAtendimento(${index})"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+            });
+        }
+
+        function removerAtendimento(index) {
+            if (confirm("⚠️ Deseja excluir este registro de atendimento?")) {
+                atendimentosRegistrados.splice(index, 1);
+                salvarDados();
+                atualizarDashboardEAtendimentos();
+                mostrarMensagem("🗑️ Atendimento removido com sucesso!");
+            }
+        }
+    </script>
+</body>
+</html>
